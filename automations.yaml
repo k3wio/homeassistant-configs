@@ -1,0 +1,69 @@
+- alias: Wall Switch -> Entry Light Color Shift Forward
+  description: 'Double tap "up" on specific Inovelli Red Dimmer to add 60 to Inovelli Ilumin Bulb hue. White between 300 and 0.'
+  trigger:
+  - event_data:
+      entity_id: zwave.inovelli_lzw31_sn_dimmer_red_series
+      scene_data: 7860
+      scene_id: 2
+    event_type: zwave.scene_activated
+    platform: event
+  condition: []
+  action:
+  - data:
+      brightness: 255
+    data_template:
+      hs_color:
+      - '{% if states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]+60
+        >= 360 or  states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[1]
+        == 0  %} {{ 0 }} {% else %} {{ states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]+60
+        }} {% endif %}'
+      - '{% if states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]+60
+        >= 360 and states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[1]
+        == 100 %} 0 {% else %} 100 {% endif %}'
+    entity_id: light.inovelli_lzw42_multi_color_bulb_level
+    service: light.turn_on
+- alias: Wall Switch -> Entry Light Color Shift Backward
+  description: 'Double tap "down" on specific Inovelli Red Dimmer to subtract 60 from Inovelli Ilumin Bulb hue. White between 0 and 300.'
+  trigger:
+  - event_data:
+      entity_id: zwave.inovelli_lzw31_sn_dimmer_red_series
+      scene_data: 7860
+      scene_id: 1
+    event_type: zwave.scene_activated
+    platform: event
+  condition: []
+  action:
+  - data:
+      brightness: 255
+    data_template:
+      hs_color:
+      - "{% if\n  states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]\
+        \ == 0 and\n  states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[1]\
+        \ == 100\n  %}\n{{ states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]\
+        \ }} {% elif states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]-60\
+        \ < 0 %} {{ 300 }} {% else %} {{ states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]-60\
+        \ }} {% endif %}"
+      - '{% if states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[0]
+        == 0 and states.light.inovelli_lzw42_multi_color_bulb_level.attributes.hs_color[1]
+        == 100 %} {{ 0 }} {% else %} 100 {% endif %}'
+    entity_id: light.inovelli_lzw42_multi_color_bulb_level
+    service: light.turn_on
+- id: '1582355645400'
+  alias: Reset Entry Bulb Color automatically
+  description: ''
+  trigger:
+  - entity_id: light.inovelli_lzw42_multi_color_bulb_level
+    from: 'off'
+    platform: state
+  condition:
+  - condition: template
+    value_template: '{{ not (states.light.inovelli_lzw42_multi_color_bulb_level.attributes["hs_color"][0]
+      == 0.0 and states.light.inovelli_lzw42_multi_color_bulb_level.attributes["hs_color"][1]
+      == 100.0) }}'
+  action:
+  - data:
+      hs_color:
+      - 0
+      - 0
+    entity_id: light.inovelli_lzw42_multi_color_bulb_level
+    service: light.turn_on
